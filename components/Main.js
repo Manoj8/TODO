@@ -8,26 +8,36 @@ import {
   TouchableOpacity,
 } from 'react-native';
 import Note from './Note';
-export default class Main extends Component{
-    constructor(props){
-        super(props);
-        this.state={
-            noteArray:[],
-            noteText:'',
-        }
+import {connect} from 'react-redux'
+import { addNewTask, deleteTask } from '../actions/index'
+
+ class Main extends Component{
+     state = {
+         noteText:''
+     }
+
+    //  deleteMethod(e,index){
+    //      e.preventDefault();
+    //      this.props.deleteMethod(index);
+    //  }
+    static navigationOptions = {
+        title: 'Home',
+        headerStyle: {
+          backgroundColor: 'blue',
+        },
+        headerTintColor: '#fff',
+        headerTitleStyle: {
+          fontWeight: 'bold',
+        },
     }
+
   render() {
-    //   console.log(this.state.noteArray)
-      let notes = this.state.noteArray.map((val,key)=>{
-          console.log(key)
-          return <Note key={key} keyval={key} val={val}
-            deleteMethod={ ()=> this.deleteNote(key) } />
-      });
+
+      let notes = <Note navigation={this.props.navigation} deleteMethod={(index)=>this.props.onDeleteTodo(index)} arrays={this.props.noteArray}/>
+        
     return(
+
       <View style={styles.container}>
-         <View style={styles.header}>
-            <Text style={styles.headerText}>NOTER</Text>        
-         </View>
          <ScrollView style={styles.scrollContainer}>
              {notes}
          </ScrollView>
@@ -35,7 +45,7 @@ export default class Main extends Component{
                
                 <TextInput
                  style={styles.textInput}
-                 onChangeText={(noteText)=>this.setState({noteText})}
+                 onChangeText={(text)=>this.setState({noteText:text})}
                  value={this.state.noteText}
                  placeholder='type' 
                  placeholderTextColor='white'
@@ -43,31 +53,27 @@ export default class Main extends Component{
                 </TextInput>
 
              </View>
-             <TouchableOpacity onPress={this.addNote.bind(this)} style={styles.addButton}>
+             <TouchableOpacity onPress={()=>{this.props.onAddTodo(this.state.noteText)}} style={styles.addButton}>
                  <Text style={styles.addButtonText}>+</Text>
              </TouchableOpacity>
-        
+                
+    
       </View>
     );
   }
-  addNote(){
-    if(this.state.noteText){
-
-        var d = new Date();
-        this.state.noteArray.push({
-            'date': d.getFullYear() +
-            "/" + (d.getMonth()+1)+
-            "/" + d.getDate(),
-            'note':this.state.noteText
-        });
-        this.setState({ noteArray: this.state.noteArray})
-        this.setState({ noteText:''});
+}
+const mapStateToProps = state => {
+     return {
+       noteArray: state.todo.noteArray,
+       noteText: state.todo.noteText
+     }
+}
+const mapDispatchToProps = dispatch => {
+    
+    return {
+        onAddTodo: (notetext) => dispatch(addNewTask(notetext)),
+        onDeleteTodo: (index) => dispatch(deleteTask(index)),
     }
-}
-deleteNote(key){
-    this.state.noteArray.splice(key, 1);
-    this.setState({ noteArray: this.state.noteArray })
-}
 }
 
 
@@ -124,3 +130,7 @@ const styles = StyleSheet.create({
         fontSize:24,
     },
 });
+
+export default connect (
+    mapStateToProps,mapDispatchToProps
+) (Main);
